@@ -4,6 +4,7 @@ import {
     StyleSheet,
     Text,
     TextInput,
+    Image,
     View
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +14,15 @@ export default function PokemonSearch() {
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+
+    const [pokemon, setPokemon] = useState<{
+        pokemon_name: string;
+        pokemon_id: number;
+        pokemon_image: string;
+        types: string[];
+        description?: string;
+    } | null>(null);
+
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
@@ -25,21 +35,14 @@ export default function PokemonSearch() {
             const result = await PokemonRequests.fetchPokemonData(searchQuery);
 
             if (result) {
-                console.log("=========================================");
-                console.log("POKÉMON ENCONTRADO!");
-                console.log(`- Nome: ${result.pokemon_name}`);
-                console.log(`- ID: ${result.pokemon_id}`);
-                console.log(`- URL da Imagem: ${result.pokemon_image}`);
-                console.log(`- Tipagem: ${result.types.join(", ")}`);
-                console.log(`- Descrição: ${result.description || "Nenhuma descrição encontrada."}`);
-                console.log("=========================================");
-
+                setPokemon(result);
                 setSearchQuery("");
             } else {
+                setPokemon(null);
                 setErrorMsg("Pokémon não encontrado. Verifique o nome ou número.");
             }
         } catch (error) {
-            setErrorMsg("Erro ao buscar o Pokémon. Tente novamente.");
+            setPokemon(null);
             console.error(error);
         } finally {
             setLoading(false);
@@ -68,9 +71,40 @@ export default function PokemonSearch() {
 
                 {errorMsg ? <Text style={{ color: "red", marginTop: 10 }}>{errorMsg}</Text> : null}
 
-                {/* Exibir as informações aqui */}
+                {pokemon && (
+                    <View>
+                        <Image
+                            source={{ uri: pokemon.pokemon_image }}
+                            style={{ width: 150, height: 150 }}
+                        />
+                        <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+                            {pokemon.pokemon_name} (#{pokemon.pokemon_id})
+                        </Text>
+
+                        <View style={{ flexDirection: "row", marginTop: 8 }}>
+                            {pokemon.types.map((type) => (
+                                <View
+                                    key={type}
+                                    style={{
+                                        backgroundColor: TYPE_COLORS[type] || "#777",
+                                        paddingVertical: 4,
+                                        paddingHorizontal: 10,
+                                        borderRadius: 12,
+                                        marginRight: 6,
+                                    }}
+                                >
+                                    <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 12 }}>
+                                        {type.toUpperCase()}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+
             </View>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
 
@@ -85,4 +119,25 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#323238",
     },
+
 });
+const TYPE_COLORS: Record<string, string> = {
+    normal: "#A8A878",
+    fire: "#F08030",
+    water: "#6890F0",
+    electric: "#F8D030",
+    grass: "#78C850",
+    ice: "#98D8D8",
+    fighting: "#C03028",
+    poison: "#A040A0",
+    ground: "#E0C068",
+    flying: "#A890F0",
+    psychic: "#F85888",
+    bug: "#A8B820",
+    rock: "#B8A038",
+    ghost: "#705898",
+    dragon: "#7038F8",
+    dark: "#705848",
+    steel: "#B8B8D0",
+    fairy: "#EE99AC",
+};
