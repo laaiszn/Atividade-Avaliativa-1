@@ -1,95 +1,182 @@
 import Pokemon from "../../interface/Pokemon";
 import { Image } from "expo-image";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-
+import { typeIcons } from "../../../assets/icons/icons";
 interface ShowPokemonProps {
     pokemon: Pokemon;
 }
 
 export default function ShowPokemon({ pokemon }: ShowPokemonProps) {
+    const Type1Icon = pokemon.types
+        ? typeIcons[pokemon.types.type1]?.default ||
+          typeIcons[pokemon.types.type1]
+        : null;
+
+    const Type2Icon = pokemon.types?.type2
+        ? typeIcons[pokemon.types.type2]?.default ||
+          typeIcons[pokemon.types.type2]
+        : null;
+
+    const getStat = (name: string) => {
+        return pokemon.stats?.find(
+            (stat) => stat.stat.name === name
+        )?.base_stat;
+    };
+
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
+            <Text style={styles.name}>
+                {pokemon.pokemon_name
+                    .split("-")
+                    .map(
+                        (word) =>
+                            word.charAt(0).toUpperCase() +
+                            word.slice(1)
+                    )
+                    .join(" ")}
+            </Text>
+
+            <Text style={styles.id}>
+                Pokédex #{pokemon.pokemon_id}
+            </Text>
+
             <Image
                 source={{ uri: pokemon.pokemon_image }}
                 style={styles.image}
                 contentFit="contain"
             />
-            <Text style={styles.name}>{pokemon.pokemon_name}</Text>
-            {pokemon.pokemon_id && (
-                <Text style={styles.id}>#{pokemon.pokemon_id}</Text>
-            )}
 
-            {pokemon.types && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Tipos</Text>
-                    <Text>{pokemon.types.type1}</Text>
-                    {pokemon.types.type2 && <Text>{pokemon.types.type2}</Text>}
-                </View>
-            )}
+            <View style={styles.types}>
+                {Type1Icon && (
+                    <Type1Icon
+                        width={50}
+                        height={50}
+                    />
+                )}
 
-            {(pokemon.height || pokemon.weight) && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Info</Text>
-                    {pokemon.height && (
-                        <Text>Altura: {pokemon.height / 10} m</Text>
-                    )}
-                    {pokemon.weight && (
-                        <Text>Peso: {pokemon.weight / 10} kg</Text>
-                    )}
-                </View>
-            )}
+                {Type2Icon && (
+                    <Type2Icon
+                        width={50}
+                        height={50}
+                    />
+                )}
+            </View>
 
-            {pokemon.stats && pokemon.stats.length > 0 && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Stats</Text>
-                    {pokemon.stats.map((s) => (
-                        <Text key={s.stat.name}>
-                            {s.stat.name}: {s.base_stat}
-                        </Text>
-                    ))}
-                </View>
-            )}
+            <View style={styles.infoCard}>
+                <Text style={styles.sectionTitle}>
+                    Informações
+                </Text>
 
-            {pokemon.abilities && pokemon.abilities.length > 0 && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Habilidades</Text>
-                    {pokemon.abilities.map((a) => (
-                        <Text key={a.ability.name}>{a.ability.name}</Text>
-                    ))}
-                </View>
-            )}
+                <Text style={styles.infoText}>
+                    Altura: {pokemon.height! / 10} m
+                </Text>
+
+                <Text style={styles.infoText}>
+                    Peso: {pokemon.weight! / 10} kg
+                </Text>
+            </View>
+
+            <View style={styles.infoCard}>
+                <Text style={styles.sectionTitle}>
+                    Status
+                </Text>
+
+                <Text style={styles.infoText}>
+                    HP: {getStat("hp")}
+                </Text>
+
+                <Text style={styles.infoText}>
+                    Ataque: {getStat("attack")}
+                </Text>
+
+                <Text style={styles.infoText}>
+                    Defesa: {getStat("defense")}
+                </Text>
+
+                <Text style={styles.infoText}>
+                    Ataque Especial: {getStat("special-attack")}
+                </Text>
+
+                <Text style={styles.infoText}>
+                    Defesa Especial: {getStat("special-defense")}
+                </Text>
+
+                <Text style={styles.infoText}>
+                    Velocidade: {getStat("speed")}
+                </Text>
+            </View>
+
+            <View style={styles.infoCard}>
+                <Text style={styles.sectionTitle}>
+                    Habilidades
+                </Text>
+
+                {pokemon.abilities?.map((ability, index) => (
+                    <Text
+                        key={index}
+                        style={styles.infoText}
+                    >
+                        • {ability.ability.name}
+                    </Text>
+                ))}
+            </View>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        padding: 16,
+        padding: 20,
+        alignItems: "center",
+        backgroundColor: "#F7FAFC",
     },
-    image: {
-        width: 150,
-        height: 150,
-        alignSelf: "center",
-    },
+
     name: {
-        fontSize: 24,
+        fontSize: 30,
         fontWeight: "bold",
+        marginTop: 10,
         textAlign: "center",
-        textTransform: "capitalize",
     },
+
     id: {
         fontSize: 16,
-        color: "#666",
+        color: "#718096",
+        marginBottom: 10,
         textAlign: "center",
-        marginBottom: 16,
     },
-    section: {
-        marginTop: 12,
+
+    image: {
+        width: 250,
+        height: 250,
     },
+
+    types: {
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 10,
+        marginBottom: 20,
+    },
+
+    infoCard: {
+        width: "100%",
+        backgroundColor: "#FFFFFF",
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 15,
+        alignItems: "center",
+    },
+
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        marginBottom: 4,
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 10,
+        textAlign: "center",
+    },
+
+    infoText: {
+        fontSize: 16,
+        marginBottom: 5,
+        textAlign: "center",
     },
 });
